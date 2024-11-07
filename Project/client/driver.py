@@ -1,6 +1,11 @@
 import socket as sock
-from socket import socket 
+from socket import socket
+import threading as th
 
+# We must create 2 Threads to handle the client correcly
+# Thread1 = handles writting the messages 
+# Thread2 = handles the reading from server
+# !! This way we can write independet from the receiving 
 
 #get the ip addres and the port
 SERVER = "127.0.1.1"
@@ -28,6 +33,23 @@ def login(connection:socket) -> None:
     password = input(connection.recv(1024).decode())
     send_msg(password, connection)
 
+
+def chating_send(connection: socket) -> None:
+    while True:
+        msg = input("~")
+        if(msg == "/quit"):
+            send_msg(msg, connection)
+            break
+        send_msg(msg, connection)
+
+
+def chating_receive(connection: socket) -> None:
+    while True:
+        msg = connection.recv(1024).decode()
+        if msg != '':
+            print(msg)
+
+
 def main():
     conn = socket(sock.AF_INET, sock.SOCK_STREAM)
     
@@ -44,16 +66,10 @@ def main():
         print(conn.recv(1024).decode())
         print("Chat\n")
 
-        while True:
-            msg = input("~")
-            if(msg == "/quit"):
-                send_msg(msg, conn)
-                break
-            send_msg(msg, conn)
-            received_msg = conn.recv(1024).decode()
-            if received_msg != '':
-                print(received_msg)
-
+        th_seding = th.Thread(target=chating_send, args=(conn))
+        th_receive = th.Thread(target=chating_receive, agrs=(conn))
+        th_receive.start()
+        th_seding.start()
     except KeyboardInterrupt:
         conn.close()
         print("User checkedout...")

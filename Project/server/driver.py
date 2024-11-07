@@ -116,6 +116,7 @@ def driver():
     server.bind(ADDR)
     server.listen(10)
     try:
+        #Always accept connections 
         while True:
             client, addr = server.accept()
             print(addr)
